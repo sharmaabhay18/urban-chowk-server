@@ -3,6 +3,8 @@ const xss = require("xss");
 const { getAuth } = require("firebase-admin/auth");
 
 const router = express.Router();
+
+const checkAuth = require("../middleware/check-auth");
 const { users } = require("../data");
 const {
   isValidString,
@@ -24,6 +26,13 @@ router.post("/register", async (req, res) => {
     if (!email) return throw400Error("Email is required parameter", res);
     if (!uid) return throw400Error("uid is required parameter", res);
     if (!mobile) return throw400Error("Mobile is required parameter", res);
+
+    if (isNaN(mobile)) {
+      return res.status(400).json({
+        success: false,
+        result: { error: "Phone number should be of type number" },
+      });
+    }
 
     isValidString(name, "Name");
     isValidString(authProvider, "AuthProvider");
@@ -97,6 +106,62 @@ router.get("/login", async (req, res) => {
       });
   } catch (error) {
     return handleCatchError(error, res);
+  }
+});
+
+router.use(checkAuth);
+
+router.get("/", async (req, res) => {
+  const userId = req.userData.userId;
+  try {
+    const result = await users.getUserByUId(userId);
+    return res.status(200).json({ success: true, data: { result } });
+  } catch (err) {
+    handleCatchError(error, res);
+  }
+});
+
+router.patch("/", async (req, res) => {
+  try {
+    const userId = req.userData.userId;
+    let payload;
+    if (req.body.name && !req.body.mobile) {
+      isValidString(req.body.name, "Name");
+      xss(req.body.name);
+      payload = { name: req.body.name };
+    } else if (req.body.name && req.body.mobile) {
+      if (isNaN(req.body.mobile)) {
+        return res.status(400).json({
+          success: false,
+          result: { error: "Phone number should be of type number" },
+        });
+      }
+
+      isValidString(req.body.name, "Name");
+      isValidString(req.body.mobile, "Mobile");
+      xss(req.body.name);
+      xss(req.body.mobile);
+      payload = { name: req.body.name, mobile: req.body.mobile };
+    } else if (req.body.mobile && !req.body.name) {
+      if (isNaN(req.body.mobile)) {
+        return res.status(400).json({
+          success: false,
+          result: { error: "Phone number should be of type number" },
+        });
+      }
+      isValidString(req.body.mobile, "Mobile");
+      xss(req.body.mobile);
+      payload = { mobile: req.body.mobile };
+    } else {
+      return res.status(400).json({
+        success: false,
+        result: { error: "Mandatory Field is required" },
+      });
+    }
+    const updatedUser = await users.update(payload, userId);
+    return res.status(200).json({ success: true, data: { updatedUser } });
+  } catch (error) {
+    handleCatchError(error, res);
   }
 });
 

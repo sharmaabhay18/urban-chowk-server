@@ -80,7 +80,44 @@ const create = async (userPayload) => {
   }
 };
 
+const update = async (userPayload, uid) => {
+  try {
+    const usersCollection = await users();
+
+    if (userPayload.mobile) {
+      const userMobile = await usersCollection.findOne({
+        mobile: userPayload.mobile,
+      });
+
+      if (userMobile) {
+        if (
+          userMobile.mobile === userPayload.mobile &&
+          userMobile.uid !== uid
+        ) {
+          throw { status: 409, message: "Mobile Number already exist!" };
+        }
+      }
+    }
+
+    const updateUser = await usersCollection.updateOne(
+      { uid: uid },
+      { $set: userPayload }
+    );
+
+    if (!updateUser.matchedCount && !updateUser.modifiedCount)
+      throw "Could not update user";
+
+    return await getUserByUId(uid);
+  } catch (error) {
+    throw {
+      status: error.status,
+      message: `${error.message}`,
+    };
+  }
+};
+
 module.exports = {
   create,
   getUserByUId,
+  update,
 };
