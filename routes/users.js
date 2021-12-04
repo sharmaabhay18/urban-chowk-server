@@ -18,13 +18,14 @@ const handleCatchError = (error, res) => {
 //User routes
 router.post("/register", async (req, res) => {
   try {
-    const { uid, name, authProvider, email } = req.body;
+    const { uid, name, authProvider, email, mobile } = req.body;
 
     if (!name) return throw400Error("Name is required parameter", res);
     if (!authProvider)
       return throw400Error("Auth Provider is required parameter", res);
     if (!email) return throw400Error("Email is required parameter", res);
     if (!uid) return throw400Error("uid is required parameter", res);
+    if (!mobile) return throw400Error("Mobile is required parameter", res);
 
     isValidString(name, "Name");
     isValidString(authProvider, "AuthProvider");
@@ -33,14 +34,19 @@ router.post("/register", async (req, res) => {
     xss(name);
     xss(authProvider);
     xss(email);
+    xss(mobile);
 
     const emailAddress = email.toLowerCase();
 
-    const userPayload = { uid, name, email: emailAddress, authProvider };
-
+    const userPayload = {
+      uid,
+      name,
+      email: emailAddress,
+      authProvider,
+      mobile,
+    };
+    
     const userCreated = await users.create(userPayload);
-
-    // req.session.user = userCreated;
 
     return res.status(200).json(userCreated);
   } catch (error) {
