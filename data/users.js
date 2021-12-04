@@ -18,9 +18,20 @@ const getUserByObjectId = async (id) => {
   return user;
 };
 
+const getUserByUId = async (id) => {
+  if (!id) throw { status: 400, message: "Id is required" };
+
+  const usersCollection = await users();
+  const user = await usersCollection.findOne({ uid: id });
+  if (user === null)
+    throw { status: 404, message: "No user is present with that uid" };
+
+  return user;
+};
+
 const create = async (userPayload) => {
   try {
-    const { uid, name, authProvider, email, mobile } = userPayload;
+    const { uid, name, authProvider, email, mobile, role } = userPayload;
 
     if (!name) throw { status: 400, message: "Name is required parameter" };
     if (!authProvider)
@@ -28,6 +39,7 @@ const create = async (userPayload) => {
     if (!email) throw { status: 400, message: "Email is required parameter" };
     if (!uid) throw { status: 400, message: "uid is required parameter" };
     if (!mobile) throw { status: 400, message: "Mobile is required parameter" };
+    if (!role) throw { status: 400, message: "Role is required parameter" };
 
     isValidString(name, "Name");
     isValidString(authProvider, "AuthProvider");
@@ -57,6 +69,7 @@ const create = async (userPayload) => {
       authProvider: retrievedUser.authProvider,
       uid: retrievedUser.uid,
       mobile: retrievedUser.mobile,
+      role: retrievedUser.role,
       _id: retrievedUser?._id?.toString(),
     };
   } catch (error) {
@@ -69,4 +82,5 @@ const create = async (userPayload) => {
 
 module.exports = {
   create,
+  getUserByUId,
 };
