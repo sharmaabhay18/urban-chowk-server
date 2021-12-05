@@ -1,52 +1,83 @@
+const { ObjectId } = require("mongodb");
 
-const express = require("express");
-const xss = require("xss");
+const mongoCollections = require("../config/mongoCollections");
+const category = mongoCollections.category;
+const { isValidString, validateObjectId } = require("../utils/helperFuctions");
 
-const router = express.Router();
-const { users } = require(".");
-const { isValidString } = require("../utils/helperFuctions");
+const get = async () => {
+  try {
+    const categoryCollection = await category();
+    const allcategory = await categoryCollection.find({}).toArray();
 
-const throw400Error = (key, res) =>
-  res.status(400).json({ message: `${key} is required parameter` });
+    const payload = allcategory.map((t) => {
+      return { _id: t?._id?.toString(), ...t };
+    });
 
-const handleCatchError = (error, res) => {
-  const statusCode = error?.status || 500;
-  const errorMessage = error?.message || "Something went wrong!";
-
-  return res.status(statusCode).json({ message: errorMessage });
+    return payload;
+  } catch (error) {
+    throw {
+      status: 404,
+      message: "Error while getting category details",
+    };
+  }
 };
 
-//User routes
-router.post("/category", async (req, res) => {
+const create = async (payload) => {
   try {
-    const { uid, name, totalItemAvailable, from } = req.body;
+    const { name, totalItemAvailable, from } = payload;
 
-    if (!name) return throw400Error("Name is required parameter", res);
-    if (!totalItemAvailable)
-      return throw400Error("Total Item Available is required parameter", res);
-    if (!from) return throw400Error("From is required parameter", res);
-    if (!uid) return throw400Error("uid is required parameter", res);
+    if (!name) throw { status: 400, message: "Name is required parameter" };
+    if (!totalItemAvailable) throw { status: 400, message: "totalItemAvailable is required parameter" };
+    if (!from)
+      throw { status: 400, message: "from is required parameter" };
 
     isValidString(name, "Name");
-    isValidString(from, "AuthProvider");
-    isValidString(totalItemAvailable, "Email");
+    isValidString(totalItemAvailable, "totalItemAvailable");
+    isValidString(from, "from");
 
-    xss(name);
-    xss(totalItemAvailable);
-    xss(from);
+    const categoryCollection = await category();
 
-    const emailAddress = email.toLowerCase();
+    const categoryCreated = await categoryCollection.insertOne(payload);
+    if (categoryCreated.insertedCount === 0)
+      throw { status: 409, message: "Could not create category" };
 
-    const userPayload = { uid, name, email: emailAddress, authProvider };
-
-    const userCreated = await users.create(userPayload);
-
-    // req.session.user = userCreated;
-
-    return res.status(200).json(userCreated);
+    return {
+      isCreated: true,
+    };
   } catch (error) {
-    return handleCatchError(error, res);
+    throw {
+      status: error.status,
+      message: error.message,
+    };
   }
-});
+};
 
-module.exports = router;
+const remove = async (id) => {
+  try {
+    validateObjectId(id);
+
+    const categoryCollection = await category();
+    const deletionInfo = await categoryCollection.deleteOne({
+      _id: ObjectId(id),
+    });
+
+    if (deletionInfo.deletedCount === 0) {
+      throw {
+        status: 409,
+        message: `Could not delete category with id of ${id}`,
+      };
+    }
+    return { categoryId: id, deleted: true };
+  } catch (error) {
+    throw {
+      status: error.status,
+      message: error.message,
+    };
+  }
+};
+
+module.exports = {
+  create,
+  get,
+  remove,
+};

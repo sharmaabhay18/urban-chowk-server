@@ -10,7 +10,7 @@ const getItemsByObjectId = async (id) => {
   if (!parsedId)
     throw { status: 400, message: "Id passed is not a valid object id" };
 
-  const itemsCollection = await users();
+  const itemsCollection = await itemss();
   const item = await itemsCollection.findOne({ _id: id });
   if (item === null)
     throw { status: 404, message: "No items is present with that id" };
@@ -18,9 +18,9 @@ const getItemsByObjectId = async (id) => {
   return item;
 };
 
-const create = async (userPayload) => {
+const create = async (payload) => {
   try {
-    const { name, description, quantityAvailable, packagingType, createdOn, updatedOn, item_id, price } = userPayload;
+    const { name, description, quantityAvailable, packagingType, createdOn, updatedOn, item_id, price } = payload;
 
     if (!name) return throw400Error("Name is required parameter", res);
     if (!description)
@@ -34,39 +34,55 @@ const create = async (userPayload) => {
 
 
     isValidString(name, "Name");
-    isValidString(authProvider, "AuthProvider");
-    isValidString(email, "Email");
+    isValidString(description, "Description");
 
-    //check if username is already present in the system
+    //check if itemsname is already present in the system
     const itemsCollection = await items();
-    const item = await itemsCollection.findOne({ email: email });
-    if (user !== null) throw { status: 409, message: "Email already exist!" };
+ 
+    const itemsCreated = await itemsCollection.insertOne(payload);
+    if (itemsCreated.insertedCount === 0)
+      throw { status: 409, message: "Could not create items" };
 
-    const userCreated = await usersCollection.insertOne(userPayload);
-    if (userCreated.insertedCount === 0)
-      throw { status: 409, message: "Could not create user" };
-
-    const newId = userCreated.insertedId;
-
-    const retrievedUser = await getUserByObjectId(newId);
 
     return {
-      name: retrievedUser.name,
-      email: retrievedUser.email,
-      authProvider: retrievedUser.authProvider,
-      uid: retrievedUser.uid,
-      _id: retrievedUser?._id?.toString(),
+      isCreated: true
     };
   } catch (error) {
     throw {
       status: error.status,
-      message: `Error while creating user ${error.message}`,
+      message: `Error while creating items ${error.message}`,
+    };
+  }
+};
+
+
+const remove = async (id) => {
+  try {
+
+    const itemsCollection = await items();
+    const deletionInfo = await itemsCollection.deleteOne({
+      _id: ObjectId(id),
+    });
+
+    if (deletionInfo.deletedCount === 0) {
+      throw {
+        status: 409,
+        message: `Could not delete items with id of ${id}`,
+      };
+    }
+    return { itemsId: id, deleted: true };
+  } catch (error) {
+    throw {
+      status: error.status,
+      message: error.message,
     };
   }
 };
 
 module.exports = {
   create,
+  getItemsByObjectId,
+  remove
 };
 
 
