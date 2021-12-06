@@ -116,8 +116,28 @@ const update = async (userPayload, uid) => {
   }
 };
 
+const checkMobile = async (mobile) => {
+  try {
+    if (!mobile) throw { status: 400, message: "Mobile is required parameter" };
+
+    const usersCollection = await users();
+    const userMobile = await usersCollection.findOne({ mobile: mobile });
+
+    if (userMobile !== null)
+      throw { status: 409, message: "Mobile Number already exist!" };
+
+    return { isAvailable: true };
+  } catch (error) {
+    throw {
+      status: error.status,
+      message: `${error.message}`,
+    };
+  }
+};
+
 module.exports = {
   create,
   getUserByUId,
   update,
+  checkMobile,
 };

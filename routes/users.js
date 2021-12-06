@@ -109,11 +109,32 @@ router.get("/login", async (req, res) => {
   }
 });
 
+router.get("/checkMobile", async (req, res) => {
+  try {
+    const { mobile } = req.body;
+    if (!mobile) return throw400Error("Mobile is required parameter", res);
+
+    if (isNaN(mobile)) {
+      return res.status(400).json({
+        success: false,
+        result: { error: "Phone number should be of type number" },
+      });
+    }
+    isValidString(mobile, "Mobile");
+    xss(mobile);
+
+    const result = await users.checkMobile(mobile);
+    return res.status(200).json({ success: true, data: { result } });
+  } catch (err) {
+    handleCatchError(error, res);
+  }
+});
+
 router.use(checkAuth);
 
 router.get("/", async (req, res) => {
-  const userId = req.userData.userId;
   try {
+    const userId = req.userData.userId;
     const result = await users.getUserByUId(userId);
     return res.status(200).json({ success: true, data: { result } });
   } catch (err) {
