@@ -20,4 +20,5 @@ module.exports = {
   users: getCollectionFn("users"),
   testimonials: getCollectionFn("testimonials"),
   customerAddress: getCollectionFn("customerAddress"),
+  couponsCode: getCollectionFn("couponsCode"),
 };
