@@ -21,4 +21,6 @@ module.exports = {
   testimonials: getCollectionFn("testimonials"),
   customerAddress: getCollectionFn("customerAddress"),
   couponsCode: getCollectionFn("couponsCode"),
+  items: getCollectionFn("items"),
+  category: getCollectionFn("category"),
 };
