@@ -24,18 +24,23 @@ const get = async () => {
 
 const create = async (payload) => {
   try {
-    const { name, totalItemAvailable, from } = payload;
+    const { name, icon } = payload;
 
     if (!name) throw { status: 400, message: "Name is required parameter" };
-    if (!totalItemAvailable) throw { status: 400, message: "totalItemAvailable is required parameter" };
-    if (!from)
-      throw { status: 400, message: "from is required parameter" };
+    if (!icon) throw { status: 400, message: "Icon is required parameter" };
 
     isValidString(name, "Name");
-    isValidString(totalItemAvailable, "totalItemAvailable");
-    isValidString(from, "from");
+    isValidString(icon, "Icon");
 
     const categoryCollection = await category();
+
+    const catName = name.toLowerCase();
+    const isExist = await categoryCollection.findOne({
+      name: catName,
+    });
+
+    if (isExist !== null)
+      throw { status: 409, message: "Category already exist!" };
 
     const categoryCreated = await categoryCollection.insertOne(payload);
     if (categoryCreated.insertedCount === 0)

@@ -1,51 +1,71 @@
 const { ObjectId } = require("mongodb");
 const mongoCollections = require("../config/mongoCollections");
 const items = mongoCollections.items;
-const { isValidString } = require("../utils/helperFuctions");
+const { isValidString, validateObjectId } = require("../utils/helperFuctions");
 
 const getItemsByObjectId = async (id) => {
-  if (!id) throw { status: 400, message: "Id is required" };
+  try {
+    if (!id) throw { status: 400, message: "Id is required" };
 
-  const parsedId = ObjectId.isValid(id);
-  if (!parsedId)
-    throw { status: 400, message: "Id passed is not a valid object id" };
+    const parsedId = ObjectId.isValid(id);
+    if (!parsedId)
+      throw { status: 400, message: "Id passed is not a valid object id" };
 
-  const itemsCollection = await itemss();
-  const item = await itemsCollection.findOne({ _id: id });
-  if (item === null)
-    throw { status: 404, message: "No items is present with that id" };
+    validateObjectId(id);
 
-  return item;
+    const itemsCollection = await items();
+    const item = await itemsCollection.find({ categoryId: id }).toArray();
+
+    if (item === null)
+      throw { status: 404, message: "No items is present with that id" };
+
+    const result = item.map((t) => {
+      return { _id: t?._id?.toString(), ...t };
+    });
+
+    return result;
+  } catch (error) {
+    throw {
+      status: error.status,
+      message: `Error while creating items ${error.message}`,
+    };
+  }
 };
 
 const create = async (payload) => {
   try {
-    const { name, description, quantityAvailable, packagingType, createdOn, updatedOn, item_id, price } = payload;
+    const { name, description, icon, categoryId, price } = payload;
 
     if (!name) return throw400Error("Name is required parameter", res);
     if (!description)
       return throw400Error("Description is required parameter", res);
-    if (!quantityAvailable) return throw400Error("Quantity available is required parameter", res);
-    if (!packagingType) return throw400Error("Packaging Type is required parameter", res);
-    if (!createdOn) return throw400Error("CreatedOn is required parameter", res);
-    if (!updatedOn) return throw400Error("UpdatedOn is required parameter", res);
-    if (!item_id) return throw400Error("Item id is required parameter", res);
+    if (!categoryId)
+      return throw400Error("Category id is required parameter", res);
+    if (!icon) return throw400Error("Icon id is required parameter", res);
     if (!price) return throw400Error("Price is required parameter", res);
-
 
     isValidString(name, "Name");
     isValidString(description, "Description");
+    isValidString(icon, "Icon");
 
-    //check if itemsname is already present in the system
+    validateObjectId(categoryId);
+
+    if (isNaN(price)) {
+      throw { status: 404, message: "Price should be of type number" };
+    }
+
+    if (price < 0) {
+      throw { status: 404, message: "Price should be greater than 0" };
+    }
+
     const itemsCollection = await items();
- 
+
     const itemsCreated = await itemsCollection.insertOne(payload);
     if (itemsCreated.insertedCount === 0)
       throw { status: 409, message: "Could not create items" };
 
-
     return {
-      isCreated: true
+      isCreated: true,
     };
   } catch (error) {
     throw {
@@ -55,11 +75,12 @@ const create = async (payload) => {
   }
 };
 
-
 const remove = async (id) => {
   try {
+    validateObjectId(id);
 
     const itemsCollection = await items();
+
     const deletionInfo = await itemsCollection.deleteOne({
       _id: ObjectId(id),
     });
@@ -82,11 +103,5 @@ const remove = async (id) => {
 module.exports = {
   create,
   getItemsByObjectId,
-  remove
+  remove,
 };
-
-
-
-
-
-

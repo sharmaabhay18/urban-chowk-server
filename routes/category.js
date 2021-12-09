@@ -1,61 +1,77 @@
-
 const express = require("express");
 const xss = require("xss");
 
 const router = express.Router();
+const checkAuth = require("../middleware/check-auth");
 const { category } = require("../data");
-const { isValidString } = require("../utils/helperFuctions");
-
-const throw400Error = (key, res) =>
-  res.status(400).json({ message: `${key} is required parameter` });
-
-const handleCatchError = (error, res) => {
-  const statusCode = error?.status || 500;
-  const errorMessage = error?.message || "Something went wrong!";
-
-  return res.status(statusCode).json({ message: errorMessage });
-};
-
+const {
+  isValidString,
+  isAdmin,
+  throw400Error,
+  handleCatchError,
+  validateObjectId,
+} = require("../utils/helperFuctions");
 
 router.get("/", async (_, res) => {
-    let result;
-    try {
-      result = await category.get();
-    } catch (err) {
-      handleCatchError(error, res);
-    }
-  
-    return res.json({ success: true, result: { data: result } });
-  });
-
-
-router.post("/category", async (req, res) => {
+  let result;
   try {
-    const { name, totalItemAvailable, from } = req.body;
+    result = await category.get();
+  } catch (err) {
+    handleCatchError(error, res);
+  }
+
+  return res.json({ success: true, result: { data: result } });
+});
+
+router.use(checkAuth);
+
+router.post("/add", async (req, res) => {
+  try {
+    const { name, icon } = req.body;
+    const userId = req.userData.userId;
+    const role = req.userData.role;
 
     if (!name) return throw400Error("Name is required parameter", res);
-    if (!totalItemAvailable)
-      return throw400Error("Total Item Available is required parameter", res);
-    if (!from) return throw400Error("From is required parameter", res);
+    if (!icon) return throw400Error("Icon is required parameter", res);
 
     isValidString(name, "Name");
-    isValidString(from, "AuthProvider");
-    isValidString(totalItemAvailable, "Email");
+    isValidString(icon, "Icon");
 
     xss(name);
-    xss(totalItemAvailable);
-    xss(from);
 
-    const emailAddress = email.toLowerCase();
+    xss(icon);
 
-    const itemPayload = { uid, name, email: emailAddress, authProvider };
+    isAdmin(role);
 
-    const itemCreated = await items.create(itemPayload);
+    const catName = name.toLowerCase();
 
+    const payload = { uid: userId, name: catName, icon };
 
-    return res.status(200).json(itemCreated);
+    const categoryCreated = await category.create(payload);
+
+    return res
+      .status(200)
+      .json({ success: true, result: { data: categoryCreated } });
   } catch (error) {
     return handleCatchError(error, res);
+  }
+});
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const role = req.userData.role;
+
+    validateObjectId(id);
+
+    xss(id);
+
+    isAdmin(role);
+
+    const categoryDeleted = await category.remove(id);
+    return res.json({ success: true, result: { data: categoryDeleted } });
+  } catch (error) {
+    handleCatchError(error, res);
   }
 });
 
