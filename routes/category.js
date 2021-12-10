@@ -27,25 +27,28 @@ router.use(checkAuth);
 
 router.post("/add", async (req, res) => {
   try {
-    const { name, icon } = req.body;
+    const { name, icon, description } = req.body;
     const userId = req.userData.userId;
     const role = req.userData.role;
 
     if (!name) return throw400Error("Name is required parameter", res);
     if (!icon) return throw400Error("Icon is required parameter", res);
+    if (!description)
+      return throw400Error("Description is required parameter", res);
 
     isValidString(name, "Name");
     isValidString(icon, "Icon");
+    isValidString(description, "Description");
 
     xss(name);
-
+    xss(description);
     xss(icon);
 
     isAdmin(role);
 
     const catName = name.toLowerCase();
 
-    const payload = { uid: userId, name: catName, icon };
+    const payload = { uid: userId, name: catName, icon, description };
 
     const categoryCreated = await category.create(payload);
 

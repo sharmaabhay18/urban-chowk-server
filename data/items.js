@@ -3,6 +3,24 @@ const mongoCollections = require("../config/mongoCollections");
 const items = mongoCollections.items;
 const { isValidString, validateObjectId } = require("../utils/helperFuctions");
 
+const get = async () => {
+  try {
+    const itemsCollection = await items();
+    const allItems = await itemsCollection.find({}).toArray();
+
+    const payload = allItems.map((t) => {
+      return { _id: t?._id?.toString(), ...t };
+    });
+
+    return payload;
+  } catch (error) {
+    throw {
+      status: 404,
+      message: "Error while getting item details",
+    };
+  }
+};
+
 const getItemsByObjectId = async (id) => {
   try {
     if (!id) throw { status: 400, message: "Id is required" };
@@ -104,4 +122,5 @@ module.exports = {
   create,
   getItemsByObjectId,
   remove,
+  get,
 };

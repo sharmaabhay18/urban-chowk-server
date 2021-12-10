@@ -24,12 +24,15 @@ const get = async () => {
 
 const create = async (payload) => {
   try {
-    const { name, icon } = payload;
+    const { name, icon, description } = payload;
 
     if (!name) throw { status: 400, message: "Name is required parameter" };
     if (!icon) throw { status: 400, message: "Icon is required parameter" };
+    if (!description)
+      return throw400Error("Description is required parameter", res);
 
     isValidString(name, "Name");
+    isValidString(description, "Description");
     isValidString(icon, "Icon");
 
     const categoryCollection = await category();

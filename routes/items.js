@@ -13,6 +13,17 @@ const {
   handleCatchError,
 } = require("../utils/helperFuctions");
 
+router.get("/", async (_, res) => {
+  let result;
+  try {
+    result = await items.get();
+  } catch (err) {
+    handleCatchError(error, res);
+  }
+
+  return res.json({ success: true, result: { data: result } });
+});
+
 router.get("/:categoryId", async (req, res) => {
   let result;
   try {
