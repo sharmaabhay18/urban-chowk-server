@@ -17,7 +17,7 @@ router.get("/", async (_, res) => {
   try {
     result = await category.get();
   } catch (err) {
-    handleCatchError(error, res);
+    return handleCatchError(err, res);
   }
 
   return res.json({ success: true, result: { data: result } });
@@ -74,7 +74,7 @@ router.delete("/:id", async (req, res) => {
     const categoryDeleted = await category.remove(id);
     return res.json({ success: true, result: { data: categoryDeleted } });
   } catch (error) {
-    handleCatchError(error, res);
+    return handleCatchError(error, res);
   }
 });
 

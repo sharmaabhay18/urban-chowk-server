@@ -126,7 +126,7 @@ router.get("/checkMobile", async (req, res) => {
     const result = await users.checkMobile(mobile);
     return res.status(200).json({ success: true, data: { result } });
   } catch (err) {
-    handleCatchError(error, res);
+    return handleCatchError(err, res);
   }
 });
 
@@ -138,7 +138,7 @@ router.get("/", async (req, res) => {
     const result = await users.getUserByUId(userId);
     return res.status(200).json({ success: true, data: { result } });
   } catch (err) {
-    handleCatchError(error, res);
+    return handleCatchError(err, res);
   }
 });
 
@@ -182,7 +182,7 @@ router.patch("/", async (req, res) => {
     const updatedUser = await users.update(payload, userId);
     return res.status(200).json({ success: true, data: { updatedUser } });
   } catch (error) {
-    handleCatchError(error, res);
+    return handleCatchError(error, res);
   }
 });
 

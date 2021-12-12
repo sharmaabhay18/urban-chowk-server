@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
   try {
     result = await customerAddress.get(userId);
   } catch (err) {
-    handleCatchError(error, res);
+    return handleCatchError(err, res);
   }
 
   return res.json({ success: true, result: { data: result } });
@@ -75,7 +75,7 @@ router.delete("/:id", async (req, res) => {
     const deletedCustomer = await customerAddress.remove(id);
     return res.json({ success: true, result: { data: deletedCustomer } });
   } catch (error) {
-    handleCatchError(error, res);
+    return handleCatchError(error, res);
   }
 });
 

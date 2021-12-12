@@ -4,6 +4,7 @@ const customerAddRoutes = require("./customerAddress");
 const couponsCodeRoutes = require("./couponsCode");
 const categoryRoutes = require("./category");
 const itemsRoutes = require("./items");
+const orderRoutes = require("./order");
 
 const routeConstructor = (app) => {
   app.use("/user", userRoutes);
@@ -12,6 +13,7 @@ const routeConstructor = (app) => {
   app.use("/coupon", couponsCodeRoutes);
   app.use("/category", categoryRoutes);
   app.use("/item", itemsRoutes);
+  app.use("/order", orderRoutes);
 
   app.use("/ping", (_, res) => res.status(200).json({ message: "pong" }));
   //For routes which does not exists

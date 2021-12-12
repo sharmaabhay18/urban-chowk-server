@@ -18,7 +18,7 @@ router.get("/", async (_, res) => {
   try {
     result = await testimonials.get();
   } catch (err) {
-    handleCatchError(error, res);
+    return handleCatchError(err, res);
   }
 
   return res.json({ success: true, result: { data: result } });
@@ -78,7 +78,7 @@ router.delete("/:id", async (req, res) => {
     const testimonialCreated = await testimonials.remove(id);
     return res.json({ success: true, result: { data: testimonialCreated } });
   } catch (error) {
-    handleCatchError(error, res);
+    return handleCatchError(error, res);
   }
 });
 

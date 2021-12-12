@@ -45,7 +45,7 @@ const getItemsByObjectId = async (id) => {
   } catch (error) {
     throw {
       status: error.status,
-      message: `Error while creating items ${error.message}`,
+      message: `Error while getting items ${error.message}`,
     };
   }
 };
@@ -54,13 +54,15 @@ const create = async (payload) => {
   try {
     const { name, description, icon, categoryId, price } = payload;
 
-    if (!name) return throw400Error("Name is required parameter", res);
+    if (!name) throw { status: 400, message: "Name is required parameter" };
+    if (!icon) throw { status: 400, message: "Icon is required parameter" };
     if (!description)
-      return throw400Error("Description is required parameter", res);
+      throw { status: 400, message: "Description is required parameter" };
     if (!categoryId)
-      return throw400Error("Category id is required parameter", res);
-    if (!icon) return throw400Error("Icon id is required parameter", res);
-    if (!price) return throw400Error("Price is required parameter", res);
+      throw { status: 400, message: "Category id is required parameter" };
+
+    if (!price)
+      throw { status: 400, message: "Price id is required parameter" };
 
     isValidString(name, "Name");
     isValidString(description, "Description");
@@ -93,6 +95,41 @@ const create = async (payload) => {
   }
 };
 
+const getItems = async (id) => {
+  try {
+    if (!id) throw { status: 400, message: "Id is required" };
+
+    const parsedId = ObjectId.isValid(id);
+    if (!parsedId)
+      throw { status: 400, message: "Id passed is not a valid object id" };
+
+    validateObjectId(id);
+
+    const itemsCollection = await items();
+    const item = await itemsCollection.find({ _id: ObjectId(id) }).toArray();
+    
+    if (item === null || item.length === 0)
+      throw { status: 404, message: "No items is present with that id" };
+
+    const catId = item && item[0].categoryId;
+    const allItemInCat = await itemsCollection.find({ categoryId: catId }).toArray();
+
+    if (allItemInCat === null)
+      throw { status: 404, message: "No items is present with that id" };
+
+    const result = allItemInCat.map((t) => {
+      return { _id: t?._id?.toString(), ...t };
+    });
+
+    return result;
+  } catch (error) {
+    throw {
+      status: error.status,
+      message: `${error.message}`,
+    };
+  }
+}
+
 const remove = async (id) => {
   try {
     validateObjectId(id);
@@ -123,4 +160,5 @@ module.exports = {
   getItemsByObjectId,
   remove,
   get,
+  getItems
 };

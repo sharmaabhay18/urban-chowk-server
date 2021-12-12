@@ -23,4 +23,5 @@ module.exports = {
   couponsCode: getCollectionFn("couponsCode"),
   items: getCollectionFn("items"),
   category: getCollectionFn("category"),
+  order: getCollectionFn("order"),
 };

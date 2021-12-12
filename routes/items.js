@@ -18,7 +18,7 @@ router.get("/", async (_, res) => {
   try {
     result = await items.get();
   } catch (err) {
-    handleCatchError(error, res);
+    return handleCatchError(err, res);
   }
 
   return res.json({ success: true, result: { data: result } });
@@ -35,7 +35,24 @@ router.get("/:categoryId", async (req, res) => {
 
     result = await items.getItemsByObjectId(categoryId);
   } catch (err) {
-    handleCatchError(error, res);
+    return handleCatchError(err, res);
+  }
+
+  return res.json({ success: true, result: { data: result } });
+});
+
+router.get("/get/:itemId", async (req, res) => {
+  let result;
+  try {
+    const { itemId } = req.params;
+
+    validateObjectId(itemId);
+
+    xss(itemId);
+
+    result = await items.getItems(itemId);
+  } catch (err) {
+    return handleCatchError(err, res);
   }
 
   return res.json({ success: true, result: { data: result } });
@@ -115,7 +132,7 @@ router.delete("/:id", async (req, res) => {
     const itemsCreated = await items.remove(id);
     return res.json({ success: true, result: { data: itemsCreated } });
   } catch (error) {
-    handleCatchError(error, res);
+    return handleCatchError(error, res);
   }
 });
 

@@ -29,7 +29,7 @@ const create = async (payload) => {
     if (!name) throw { status: 400, message: "Name is required parameter" };
     if (!icon) throw { status: 400, message: "Icon is required parameter" };
     if (!description)
-      return throw400Error("Description is required parameter", res);
+      throw { status: 400, message: "Description is required parameter" };
 
     isValidString(name, "Name");
     isValidString(description, "Description");

@@ -18,7 +18,7 @@ router.get("/", async (_, res) => {
   try {
     result = await couponsCode.get();
   } catch (err) {
-    handleCatchError(error, res);
+    return handleCatchError(err, res);
   }
 
   return res.json({ success: true, result: { data: result } });
@@ -84,7 +84,7 @@ router.delete("/:id", async (req, res) => {
     const deletedCoupoun = await couponsCode.remove(id);
     return res.json({ success: true, result: { data: deletedCoupoun } });
   } catch (error) {
-    handleCatchError(error, res);
+    return handleCatchError(error, res);
   }
 });
 

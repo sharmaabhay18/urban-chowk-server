@@ -29,10 +29,21 @@ const handleCatchError = (error, res) => {
 
 const validateObjectId = (id) => {
   if (!id) throw "Id is required";
-  if (typeof id !== "string" || id?.trim()?.length === 0)
-    throw "Please enter a valid id";
+  if (typeof id !== "string" || id?.trim()?.length === 0) {
+    throw {
+      status: 400,
+      message: "Please enter a valid id",
+    };
+  }
+
   const parsedId = ObjectId.isValid(id);
-  if (!parsedId) throw "Id passed is not a valid object id";
+
+  if (!parsedId) {
+    throw {
+      status: 400,
+      message: "Id passed is not a valid object id",
+    };
+  }
 };
 
 module.exports = {
