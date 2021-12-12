@@ -9,7 +9,7 @@ const isValidString = (str, name) => {
 };
 
 const throw400Error = (key, res) =>
-  res.status(400).json({ message: `${key} is required parameter` });
+  res.status(400).json({ message: `${key}` });
 
 const isAdmin = (role) => {
   if (role !== "admin") {

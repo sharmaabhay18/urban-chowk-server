@@ -109,7 +109,7 @@ router.get("/login", async (req, res) => {
   }
 });
 
-router.get("/checkMobile", async (req, res) => {
+router.post("/checkMobile", async (req, res) => {
   try {
     const { mobile } = req.body;
     if (!mobile) return throw400Error("Mobile is required parameter", res);
@@ -117,10 +117,17 @@ router.get("/checkMobile", async (req, res) => {
     if (isNaN(mobile)) {
       return res.status(400).json({
         success: false,
-        result: { error: "Phone number should be of type number" },
+        message: "Phone number should be of type number",
       });
     }
     isValidString(mobile, "Mobile");
+    const isValidPhoneNumber = /^\d{10}$/.test(Number(mobile));
+    if (!isValidPhoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is not valid",
+      });
+    }
     xss(mobile);
 
     const result = await users.checkMobile(mobile);

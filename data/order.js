@@ -1,7 +1,7 @@
 const { ObjectId } = require("mongodb");
 const mongoCollections = require("../config/mongoCollections");
 const order = mongoCollections.order;
-const { isValidString, validateObjectId } = require("../utils/helperFuctions");
+
 
 const getAll = async () => {
   try {
@@ -111,8 +111,65 @@ const create = async (payload) => {
   }
 };
 
+const getOrderByObjectId = async (id) => {
+  try {
+    if (!id) throw { status: 400, message: "Id is required" };
+
+    const parsedId = ObjectId.isValid(id);
+    if (!parsedId)
+      throw { status: 400, message: "Id passed is not a valid object id" };
+
+    const orderCollection = await order();
+    const orderData = await orderCollection.findOne({ _id: ObjectId(id) });
+
+    if (orderData === null)
+      throw { status: 404, message: "No order is present with that id" };
+
+    return orderData;
+  } catch (error) {
+    throw {
+      status: error.status,
+      message: `${error.message}`,
+    };
+  }
+};
+
+
+const update = async (orderPayload, id) => {
+  try {
+    if (!id) throw { status: 400, message: "Id is required" };
+
+    const parsedId = ObjectId.isValid(id);
+    if (!parsedId)
+      throw { status: 400, message: "Id passed is not a valid object id" };
+
+    const orderCollection = await order();
+    const updatedOrder = await orderCollection.updateOne(
+      { _id: ObjectId(id) },
+      { $set: orderPayload }
+    );
+
+    if (!updatedOrder.matchedCount && !updatedOrder.modifiedCount)
+      throw "Could not update order";
+
+    const orderDetails = await getOrderByObjectId(id);
+
+    return {
+      isUpdated: true,
+      uid: orderDetails?.uid
+    };
+  } catch (error) {
+    throw {
+      status: error.status,
+      message: `${error.message}`,
+    };
+  }
+};
+
 module.exports = {
   create,
   getAll,
   get,
+  update,
+  getOrderByObjectId
 };

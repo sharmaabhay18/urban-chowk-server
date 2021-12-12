@@ -10,10 +10,14 @@ const checkAuth = require("../middleware/check-auth");
 const {
   isAdmin,
   throw400Error,
+  isValidString,
   handleCatchError,
+  validateObjectId
 } = require("../utils/helperFuctions");
 
 router.use(checkAuth);
+
+
 
 router.get("/all", async (req, res) => {
   let result;
@@ -102,11 +106,7 @@ router.post("/add", async (req, res) => {
     if (orderCreated.isCreated) {
       const userData = await users.getUserByUId(userId);
 
-      let transporter = nodemailer.createTransport(
-        nodemailerSendgrid({
-          apiKey: process.env.SENDGRID_API_KEY,
-        })
-      );
+
 
       let deliveryAddress =
         selectedAddress.address +
@@ -116,6 +116,11 @@ router.post("/add", async (req, res) => {
         selectedAddress.state +
         " " +
         selectedAddress.pincode;
+      let transporter = nodemailer.createTransport(
+        nodemailerSendgrid({
+          apiKey: process.env.SENDGRID_API_KEY,
+        })
+      );
 
       await transporter.sendMail({
         from: '"Uraban Chowk" <abhaay18@gmail.com>', // sender address
@@ -135,6 +140,62 @@ router.post("/add", async (req, res) => {
     return res.json({ success: true, result: { data: orderCreated } });
   } catch (err) {
     return handleCatchError(err, res);
+  }
+});
+
+
+router.patch("/:orderId", async (req, res) => {
+  try {
+    const role = req.userData.role;
+    const { orderId } = req.params;
+    const { status } = req.body;
+
+    validateObjectId(orderId);
+
+    if (!status) return throw400Error("Status is required parameter", res);
+    isValidString(status, "Status");
+
+    const statusEnum = ['PENDING', 'CANCEL', 'DELIVERED'];
+
+    if (!statusEnum.includes(status.toUpperCase())) {
+      throw { status: 400, message: "Status should be of type pending, cancel, and delivered" };
+    }
+
+    xss(orderId);
+    xss(status);
+
+    isAdmin(role);
+
+    const currOrder = await order.getOrderByObjectId(orderId);
+    currOrder.status = status.toUpperCase();
+
+    const updatedOrder = await order.update(currOrder, orderId);
+    const userData = await users.getUserByUId(updatedOrder.uid);
+
+
+    let transporter = nodemailer.createTransport(
+      nodemailerSendgrid({
+        apiKey: process.env.SENDGRID_API_KEY,
+      })
+    );
+
+    await transporter.sendMail({
+      from: '"Uraban Chowk" <abhaay18@gmail.com>', // sender address
+      to: userData.email, // list of receivers
+      subject: "Your Order has a update ✔", // Subject line
+      html: `
+      <h2>Hey ${userData.name} ,</h2>
+      <p>We have an update on your recent order.</p>
+      <p>Status - ${status}</p>
+
+      <h2>Thank You,</h2>
+      <h2>Urban Chowk Team</h2>
+      `,
+    });
+
+    return res.json({ success: true, result: { data: updatedOrder } });
+  } catch (error) {
+    return handleCatchError(error, res);
   }
 });
 
