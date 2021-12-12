@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const xss = require("xss");
 
+const bluebird = require("bluebird");
+const redis = require("redis");
+
 const { testimonials } = require("../data");
 
 const checkAuth = require("../middleware/check-auth");
@@ -13,15 +16,33 @@ const {
   handleCatchError,
 } = require("../utils/helperFuctions");
 
+const client = redis.createClient();
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
+
+const TESTIMONIAL = "TESTIMONIAL";
+
 router.get("/", async (_, res) => {
   let result;
   try {
+
+    const isCached = await client.existsAsync(TESTIMONIAL);
+
+    if (isCached) {
+      console.log("Getting testimonial data from cache!");
+      const testData = await client.getAsync(TESTIMONIAL);
+      return res.json({ success: true, result: { data: JSON.parse(testData) } });
+    }
+
     result = await testimonials.get();
+
+    console.log("Caching all testimonial data");
+    result && await client.setAsync(TESTIMONIAL, JSON.stringify(result));
+
+    return res.json({ success: true, result: { data: result } });
   } catch (err) {
     return handleCatchError(err, res);
   }
-
-  return res.json({ success: true, result: { data: result } });
 });
 
 router.use(checkAuth);
@@ -58,7 +79,11 @@ router.post("/add", async (req, res) => {
     };
 
     const testimonialCreated = await testimonials.create(testimonialPayload);
-    return res.json({ success: true, result: { data: testimonialCreated } });
+
+    console.log("Caching new testimonial data");
+    testimonialCreated && await client.setAsync(TESTIMONIAL, JSON.stringify(testimonialCreated?.testimonials));
+
+    return res.json({ success: true, result: { data: { isCreater: testimonialCreated?.isCreated } } });
   } catch (err) {
     return handleCatchError(err, res);
   }
@@ -75,8 +100,18 @@ router.delete("/:id", async (req, res) => {
 
     isAdmin(role);
 
-    const testimonialCreated = await testimonials.remove(id);
-    return res.json({ success: true, result: { data: testimonialCreated } });
+    const updatedTestimonial = await testimonials.remove(id);
+
+    console.log("Caching testimonial data after deleting");
+    updatedTestimonial && await client.setAsync(TESTIMONIAL, JSON.stringify(updatedTestimonial?.testimonials));
+
+    return res.json({
+      success: true, result: {
+        data: {
+          deleted: updatedTestimonial.deleted, testimonialId: updatedTestimonial.testimonialId
+        }
+      }
+    });
   } catch (error) {
     return handleCatchError(error, res);
   }

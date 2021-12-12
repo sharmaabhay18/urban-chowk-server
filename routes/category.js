@@ -2,6 +2,10 @@ const express = require("express");
 const xss = require("xss");
 
 const router = express.Router();
+
+const bluebird = require("bluebird");
+const redis = require("redis");
+
 const checkAuth = require("../middleware/check-auth");
 const { category } = require("../data");
 const {
@@ -12,15 +16,33 @@ const {
   validateObjectId,
 } = require("../utils/helperFuctions");
 
+const client = redis.createClient();
+bluebird.promisifyAll(redis.RedisClient.prototype);
+bluebird.promisifyAll(redis.Multi.prototype);
+
+const CATEGORY = "CATEGORY";
+
 router.get("/", async (_, res) => {
   let result;
   try {
+    const isCached = await client.existsAsync(CATEGORY);
+
+    if (isCached) {
+      console.log("Getting category data from cache!");
+      const categoryData = await client.getAsync(CATEGORY);
+      return res.json({ success: true, result: { data: JSON.parse(categoryData) } });
+    }
+
     result = await category.get();
+
+    console.log("Caching all category data");
+    result && await client.setAsync(CATEGORY, JSON.stringify(result));
+
+    return res.json({ success: true, result: { data: result } });
+
   } catch (err) {
     return handleCatchError(err, res);
   }
-
-  return res.json({ success: true, result: { data: result } });
 });
 
 router.use(checkAuth);
@@ -52,9 +74,12 @@ router.post("/add", async (req, res) => {
 
     const categoryCreated = await category.create(payload);
 
+    console.log("Caching new category data");
+    categoryCreated && await client.setAsync(CATEGORY, JSON.stringify(categoryCreated?.categories));
+
     return res
       .status(200)
-      .json({ success: true, result: { data: categoryCreated } });
+      .json({ success: true, result: { data: { isCreated: categoryCreated.isCreated } } });
   } catch (error) {
     return handleCatchError(error, res);
   }
@@ -72,7 +97,11 @@ router.delete("/:id", async (req, res) => {
     isAdmin(role);
 
     const categoryDeleted = await category.remove(id);
-    return res.json({ success: true, result: { data: categoryDeleted } });
+
+    console.log("Caching category data after deleting");
+    categoryDeleted && await client.setAsync(CATEGORY, JSON.stringify(categoryDeleted?.categories));
+
+    return res.json({ success: true, result: { data: { deleted: categoryDeleted.deleted, categoryId: categoryDeleted.categoryId } } });
   } catch (error) {
     return handleCatchError(error, res);
   }

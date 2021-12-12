@@ -22,6 +22,8 @@ const get = async () => {
   }
 };
 
+
+
 const create = async (payload) => {
   try {
     const { name, icon, description } = payload;
@@ -49,8 +51,11 @@ const create = async (payload) => {
     if (categoryCreated.insertedCount === 0)
       throw { status: 409, message: "Could not create category" };
 
+    const allcategory = await categoryCollection.find({}).toArray();
+
     return {
       isCreated: true,
+      categories: allcategory,
     };
   } catch (error) {
     throw {
@@ -75,7 +80,9 @@ const remove = async (id) => {
         message: `Could not delete category with id of ${id}`,
       };
     }
-    return { categoryId: id, deleted: true };
+    const allcategory = await categoryCollection.find({}).toArray();
+
+    return { categoryId: id, deleted: true, categories: allcategory, };
   } catch (error) {
     throw {
       status: error.status,

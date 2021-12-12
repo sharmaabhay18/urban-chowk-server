@@ -44,8 +44,11 @@ const create = async (payload) => {
     if (testimonialCreated.insertedCount === 0)
       throw { status: 409, message: "Could not create testimonial" };
 
+    const alltestimonial = await testimonialsCollection.find({}).toArray();
+
     return {
       isCreated: true,
+      testimonials: alltestimonial
     };
   } catch (error) {
     throw {
@@ -70,7 +73,10 @@ const remove = async (id) => {
         message: `Could not delete testimonial with id of ${id}`,
       };
     }
-    return { testimonialId: id, deleted: true };
+
+    const alltestimonial = await testimonialsCollection.find({}).toArray();
+
+    return { testimonialId: id, testimonials: alltestimonial, deleted: true };
   } catch (error) {
     throw {
       status: error.status,
