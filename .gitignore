@@ -9,6 +9,8 @@
 # production
 /build
 
+/config/urban-chowk-firebase.json
+
 # misc
 .DS_Store
 .env
