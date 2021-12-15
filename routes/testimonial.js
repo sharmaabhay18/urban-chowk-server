@@ -83,7 +83,7 @@ router.post("/add", async (req, res) => {
     console.log("Caching new testimonial data");
     testimonialCreated && await client.setAsync(TESTIMONIAL, JSON.stringify(testimonialCreated?.testimonials));
 
-    return res.json({ success: true, result: { data: { isCreater: testimonialCreated?.isCreated } } });
+    return res.json({ success: true, result: { data: { isCreated: testimonialCreated?.isCreated } } });
   } catch (err) {
     return handleCatchError(err, res);
   }

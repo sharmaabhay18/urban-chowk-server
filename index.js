@@ -13,7 +13,7 @@ admin.initializeApp({
 });
 
 app.use(cors({
-  origin: 'http://18.118.218.9'
+  origin: process.env.NODE_ENV === "development" ? 'http://localhost:3000' : "http://18.118.218.9"
 }));
 
 app.use(express.json());
