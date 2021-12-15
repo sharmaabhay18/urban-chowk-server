@@ -15,7 +15,7 @@ admin.initializeApp({
 app.use(function (_, res, next) {
 
   // Website you wish to allow to connect
-  res.setHeader('Access-Control-Allow-Origin', 'http://18.118.218.9/');
+  res.setHeader('Access-Control-Allow-Origin', 'http://18.118.218.9');
 
   // Request methods you wish to allow
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
