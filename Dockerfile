@@ -1,3 +1,15 @@
-FROM node:14.16.0
+FROM node as prod
 
-WORKDIR '/var/www/app'
+WORKDIR /var/www/app
+
+COPY package*.json ./
+
+RUN npm install
+
+WORKDIR /var/www/app
+
+COPY . .
+
+ENV NODE_ENV=production
+
+CMD [ "npm", "start" ]

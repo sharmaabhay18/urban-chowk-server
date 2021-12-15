@@ -6,6 +6,7 @@ services:
       - 6379
   app:
     build: ./
+    container_name: urban-chowk-server
     volumes:
       - ./:/var/www/app
     links:
@@ -14,6 +15,8 @@ services:
       - 8080:8080
     environment:
       - REDIS_URL=redis://cache
-      - NODE_ENV=development
       - PORT=8080
+      - MONGO_URL=mongodb+srv://abhay:Password2021@cluster0.beqrb.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
+      - MONGO_DB=urban-chowk
+      - SENDGRID_API_KEY=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
     command: sh -c 'npm i && node index.js'

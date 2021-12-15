@@ -16,7 +16,7 @@ const {
   handleCatchError,
 } = require("../utils/helperFuctions");
 
-const client = redis.createClient(6379, 'redis');
+const client = redis.createClient(process.env.REDIS_URL);
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
