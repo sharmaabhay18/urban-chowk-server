@@ -12,7 +12,10 @@ admin.initializeApp({
   credential: admin.credential.cert(cred?.firebase),
 });
 
-process.env.NODE_ENV === "development" && app.use(cors());
+app.use(cors({
+  origin: 'http://18.118.218.9/',
+  credentials: true
+}));
 
 app.use(express.json());
 
