@@ -123,7 +123,7 @@ router.post("/add", async (req, res) => {
       );
 
       await transporter.sendMail({
-        from: '"Uraban Chowk" <abhaay18@gmail.com>', // sender address
+        from: '"Uraban Chowk" <urbanchowk2021@gmail.com>', // sender address
         to: userData.email, // list of receivers
         subject: "Order Placed Successfully ✔", // Subject line
         html: `
@@ -180,7 +180,7 @@ router.patch("/:orderId", async (req, res) => {
     );
 
     await transporter.sendMail({
-      from: '"Uraban Chowk" <abhaay18@gmail.com>', // sender address
+      from: '"Uraban Chowk" <urbanchowk2021@gmail.com>', // sender address
       to: userData.email, // list of receivers
       subject: "Your Order has a update ✔", // Subject line
       html: `
