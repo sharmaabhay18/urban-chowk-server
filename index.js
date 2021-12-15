@@ -1,18 +1,19 @@
 const express = require("express");
 const app = express();
-// const cors = require("cors");
+const cors = require("cors");
 const admin = require("firebase-admin");
 
 const routeConstructor = require("./routes");
-const cred = require("./config/urban-chowk-firebase.json");
+const cred = require("./config/urban-chowk-firebase");
 
 require("dotenv").config();
 
 admin.initializeApp({
-  credential: admin.credential.cert(cred),
+  credential: admin.credential.cert(cred?.firebase),
 });
 
-// app.use(cors());
+process.env.NODE_ENV === "development" && app.use(cors());
+
 app.use(express.json());
 
 routeConstructor(app);
