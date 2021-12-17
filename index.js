@@ -13,7 +13,7 @@ admin.initializeApp({
 });
 
 app.use(cors({
-  origin: process.env.NODE_ENV === "development" ? 'http://localhost:3000' : "https://urban-chowk-fe.herokuapp.com"
+  origin: "https://urban-chowk-fe.herokuapp.com"
 }));
 
 app.use(express.json());
