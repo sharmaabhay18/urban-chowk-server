@@ -13,7 +13,7 @@ admin.initializeApp({
 });
 
 app.use(cors({
-  origin: "https://urban-chowk-fe.herokuapp.com"
+  origin: "http://urban-chowk-fe.herokuapp.com"
 }));
 
 app.use(express.json());
