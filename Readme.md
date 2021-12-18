@@ -18,7 +18,8 @@
 
 1. Make sure you have `.env` file.
 2. Make sure you have docker installed, up and running.
-3. Run `docker-compose up --build` to build and run the app locally[http://localhost:8080] using docker.
+3. Run command `npm install` in root directory of project.
+4. Run `docker-compose up --build` to build and run the app locally[http://localhost:8080] using docker.
 
 ## Depolying app on heroku using docker
 > We created pipeline in heroku so whenever the app is merged to `master` git branch it will deploy the code automatically and will be available at [https://urban-chowk-server.herokuapp.com/]
