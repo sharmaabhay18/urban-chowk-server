@@ -1,5 +1,6 @@
 # Getting Started with Urban Chowk Server
 
+> - Github Link => https://github.com/sharmaabhay18/urban-chowk-server
 > - App is hosted at [https://urban-chowk-server.herokuapp.com/]
 > - Call `https://urban-chowk-server.herokuapp.com/ping` to check if app is alive.
 ## Note
