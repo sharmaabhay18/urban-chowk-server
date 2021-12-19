@@ -10,6 +10,4 @@ WORKDIR /var/www/app
 
 COPY . .
 
-ENV NODE_ENV=production
-
 CMD [ "npm", "start" ]
